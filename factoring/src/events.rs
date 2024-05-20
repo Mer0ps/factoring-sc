@@ -13,7 +13,8 @@ pub trait EventsModule {
         #[indexed] hash: ManagedBuffer,
         #[indexed] amount: BigUint,
         #[indexed] due_date: u64,
-        #[indexed] invoice_id: u64
+        #[indexed] invoice_id: u64,
+        #[indexed] timestamp: u64,
     );
 
     #[event("invoice_confirm_event")]
@@ -22,6 +23,7 @@ pub trait EventsModule {
         #[indexed] id_contract: u64,
         #[indexed] id_invoice: u64,
         #[indexed] status: Status,
+        #[indexed] timestamp: u64,
     );
 
     #[event("invoice_fund_event")]
@@ -29,6 +31,7 @@ pub trait EventsModule {
         &self,
         #[indexed] id_contract: u64,
         #[indexed] id_invoice: u64,
+        #[indexed] timestamp: u64,
     );
 
     #[event("invoice_pay_event")]

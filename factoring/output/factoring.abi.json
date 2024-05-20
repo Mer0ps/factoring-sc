@@ -16,9 +16,6 @@
             "version": "0.50.0"
         }
     },
-    "docs": [
-        "An empty contract. To be used as a template when starting a new contract from scratch."
-    ],
     "name": "Factoring",
     "constructor": {
         "inputs": [],
@@ -148,6 +145,30 @@
                     "type": "u64"
                 }
             ],
+            "outputs": []
+        },
+        {
+            "name": "useLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "exitMarketFarm",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "withdrawLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "claimFarmingRewards",
+            "mutability": "mutable",
+            "inputs": [],
             "outputs": []
         },
         {
@@ -364,6 +385,11 @@
                     "name": "invoice_id",
                     "type": "u64",
                     "indexed": true
+                },
+                {
+                    "name": "timestamp",
+                    "type": "u64",
+                    "indexed": true
                 }
             ]
         },
@@ -384,6 +410,11 @@
                     "name": "status",
                     "type": "Status",
                     "indexed": true
+                },
+                {
+                    "name": "timestamp",
+                    "type": "u64",
+                    "indexed": true
                 }
             ]
         },
@@ -397,6 +428,11 @@
                 },
                 {
                     "name": "id_invoice",
+                    "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "timestamp",
                     "type": "u64",
                     "indexed": true
                 }

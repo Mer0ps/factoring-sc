@@ -10,6 +10,8 @@ mod admin_whitelist;
 mod invoice;
 mod contract;
 mod events;
+mod stable_farming;
+mod hatom_proxy;
 
 use crate::{invoice::*, contract::CustomerContract};
 
@@ -26,6 +28,7 @@ pub trait Factoring :
     admin_whitelist::AdminWhitelistModule   
     + storage::Storage
     + events::EventsModule
+    + stable_farming::StableFarmingModule
 {
     #[init]
     fn init(&self) {}
@@ -105,7 +108,7 @@ pub trait Factoring :
         
         let invoice_id = self.invoices_by_contract(&id_contract).len() as u64;
 
-        self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id);
+        self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp());
     }
 
     #[endpoint(confirmInvoice)]
@@ -123,7 +126,7 @@ pub trait Factoring :
 
         invoice.status = status;
         self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
-        self.invoice_confirm_event(id_contract, id_invoice, status);
+        self.invoice_confirm_event(id_contract, id_invoice, status, self.blockchain().get_block_timestamp());
     }
 
     #[endpoint(addCompanyAdministrator)]
@@ -161,7 +164,35 @@ pub trait Factoring :
 
         invoice.status = Status::Funded;
         self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
-        self.invoice_fund_event(id_contract, id_invoice);
+        self.invoice_fund_event(id_contract, id_invoice, self.blockchain().get_block_timestamp());
+    }
+
+    #[endpoint(useLiquidity)]
+    fn use_liquidity(&self){
+        self.require_caller_is_admin();
+
+        self.farm_unused_liquidity();
+    }
+
+    #[endpoint(exitMarketFarm)]
+    fn exit_market_farm(&self){
+        self.require_caller_is_admin();
+
+        self.exit_market();
+    }
+
+    #[endpoint(withdrawLiquidity)]
+    fn withdraw_liquidity(&self){
+        self.require_caller_is_admin();
+
+        self.exit_market();
+    }
+
+    #[endpoint(claimFarmingRewards)]
+    fn claim_farming_rewards(&self){
+        self.require_caller_is_admin();
+
+        self.claim_rewards();
     }
 
     #[payable("*")]
