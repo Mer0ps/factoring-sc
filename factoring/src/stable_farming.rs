@@ -4,7 +4,7 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait StableFarmingModule {
 
-    fn farm_unused_liquidity(&self) {
+    fn mint(&self) {
         let usdc_identifier = TokenIdentifier::from_esdt_bytes(b"USDC-350c4e");
 
         let usdc_balance = self.blockchain().get_sc_balance(
@@ -20,7 +20,29 @@ pub trait StableFarmingModule {
         let payment = EsdtTokenPayment::new(usdc_identifier, 0u64, usdc_balance);
 
         self.hatom_proxy(mm_sc_address)
-            .mint_and_enter_market(Option::<ManagedAddress>::None)
+            .mint()
+            .with_esdt_transfer(payment)
+            .async_call()
+            .call_and_exit();
+    }
+
+    fn enter_market(&self) {
+        let husdc_identifier = TokenIdentifier::from_esdt_bytes(b"HUSDC-9b1b64");
+
+        let husdc_balance = self.blockchain().get_sc_balance(
+            &EgldOrEsdtTokenIdentifier::esdt(husdc_identifier.clone()),
+            0u64,
+        );
+
+        //hatom controller sc on devnet
+        let controller_sc_address = ManagedAddress::from(hex!(
+            "00000000000000000500d6074059eb7a8d8a06d07e7bd3afebf9370626e36509"
+        ));
+
+        let payment = EsdtTokenPayment::new(husdc_identifier, 0u64, husdc_balance);
+
+        self.hatom_proxy(controller_sc_address)
+            .enter_markets(OptionalValue::<BigUint>::None)
             .with_esdt_transfer(payment)
             .async_call()
             .call_and_exit();

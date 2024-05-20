@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           24
+// Endpoints:                           25
 // Async Callback (empty):               1
-// Total number of exported functions:  27
+// Total number of exported functions:  28
 
 #![no_std]
 
@@ -27,7 +27,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         confirmInvoice => confirm_invoice
         addCompanyAdministrator => add_company_administrator
         fundInvoice => fund_invoice
-        useLiquidity => use_liquidity
+        mintWithUnusedLiquidity => mint_with_unused_liquidity
+        enterMarketWithUnusedLiquidity => enter_market_with_unused_liquidity
         exitMarketFarm => exit_market_farm
         withdrawLiquidity => withdraw_liquidity
         claimFarmingRewards => claim_farming_rewards

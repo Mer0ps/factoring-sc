@@ -148,7 +148,13 @@
             "outputs": []
         },
         {
-            "name": "useLiquidity",
+            "name": "mintWithUnusedLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "enterMarketWithUnusedLiquidity",
             "mutability": "mutable",
             "inputs": [],
             "outputs": []

@@ -167,11 +167,18 @@ pub trait Factoring :
         self.invoice_fund_event(id_contract, id_invoice, self.blockchain().get_block_timestamp());
     }
 
-    #[endpoint(useLiquidity)]
-    fn use_liquidity(&self){
+    #[endpoint(mintWithUnusedLiquidity)]
+    fn mint_with_unused_liquidity(&self){
         self.require_caller_is_admin();
 
-        self.farm_unused_liquidity();
+        self.mint();
+    }
+
+    #[endpoint(enterMarketWithUnusedLiquidity)]
+    fn enter_market_with_unused_liquidity(&self){
+        self.require_caller_is_admin();
+
+        self.enter_market();
     }
 
     #[endpoint(exitMarketFarm)]
@@ -185,7 +192,7 @@ pub trait Factoring :
     fn withdraw_liquidity(&self){
         self.require_caller_is_admin();
 
-        self.exit_market();
+        self.redeem_liquidity();
     }
 
     #[endpoint(claimFarmingRewards)]
