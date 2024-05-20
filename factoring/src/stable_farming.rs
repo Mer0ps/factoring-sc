@@ -50,16 +50,16 @@ pub trait StableFarmingModule {
 
     fn claim_rewards(&self) {
 
-        //hatom rewards sc on devnet
-        let rewards_sc_address = ManagedAddress::from(hex!(
+        //hatom controller sc on devnet
+        let controller_sc_address = ManagedAddress::from(hex!(
             "00000000000000000500d6074059eb7a8d8a06d07e7bd3afebf9370626e36509"
         ));
 
         let money_markets = ManagedVec::<Self::Api, ManagedAddress<Self::Api>>::new();
         let accounts = ManagedVec::<Self::Api, ManagedAddress<Self::Api>>::new();
 
-        self.hatom_proxy(rewards_sc_address)
-            .claim_rewards(false, money_markets, accounts, OptionalValue::<BigUint>::None)
+        self.hatom_proxy(controller_sc_address)
+            .claim_rewards(false, true, true, money_markets, accounts)
             .async_call()
             .call_and_exit();
     }

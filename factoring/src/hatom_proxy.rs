@@ -27,7 +27,7 @@ pub trait HatomProxyModule {
     #[endpoint(exitMarket)]
     fn exit_market(&self, money_market: ManagedAddress, opt_tokens : OptionalValue<BigUint>) -> EsdtTokenPayment;
 
-    //Method from rewards-booster.abi
+    //Method from controller.abi
     #[endpoint(claimRewards)]
-    fn claim_rewards(&self, boost: bool, money_markets: ManagedVec<ManagedAddress>, accounts: ManagedVec<ManagedAddress>, opt_min_boosted_rewards_out : OptionalValue<BigUint>);
+    fn claim_rewards(&self, boost: bool, supply: bool, borrow: bool, money_markets: ManagedVec<ManagedAddress>, accounts: ManagedVec<ManagedAddress>);
 }
