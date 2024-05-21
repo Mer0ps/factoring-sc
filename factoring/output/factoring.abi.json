@@ -295,7 +295,7 @@
                 },
                 {
                     "name": "rate",
-                    "type": "u8"
+                    "type": "u32"
                 }
             ],
             "outputs": []
@@ -728,7 +728,7 @@
                 },
                 {
                     "name": "euribor_rate",
-                    "type": "u8"
+                    "type": "u32"
                 },
                 {
                     "name": "payed_date",

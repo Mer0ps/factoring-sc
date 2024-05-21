@@ -64,7 +64,7 @@ pub trait AdminConfigModule :
     }
 
     #[endpoint(addEuriborRate)]
-    fn add_euribor_rate(&self, timestamp: u64, rate: u8) {
+    fn add_euribor_rate(&self, timestamp: u64, rate: u32) {
         self.require_caller_is_admin();
 
         let (_rate, old_timestamp) = self.euribor_rate().get();
@@ -104,7 +104,7 @@ pub trait AdminConfigModule :
     fn admin_whitelist(&self) -> WhitelistMapper<Self::Api, ManagedAddress>;
 
     #[storage_mapper("euriborRate")]
-    fn euribor_rate(&self) -> SingleValueMapper<(u8, u64)>;
+    fn euribor_rate(&self) -> SingleValueMapper<(u32, u64)>;
 
     #[storage_mapper("allowedTokens")]
     fn allowed_tokens(&self) -> WhitelistMapper<TokenIdentifier>;

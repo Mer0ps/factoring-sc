@@ -21,6 +21,6 @@ pub struct Invoice<M: ManagedTypeApi> {
  pub status: Status,
  pub issue_date: u64,
  pub due_date: u64,
- pub euribor_rate: u8,
+ pub euribor_rate: u32,
  pub payed_date: Option<u64>
 }
