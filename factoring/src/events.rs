@@ -42,6 +42,14 @@ pub trait EventsModule {
         #[indexed] pay_date: u64,
     );
 
+    #[event("invoice_fully_fund_event")]
+    fn invoice_fully_fund_event(
+        &self,
+        #[indexed] id_contract: u64,
+        #[indexed] id_invoice: u64,
+        #[indexed] timestamp: u64,
+    );
+
     #[event("contract_create_event")]
     fn contract_create_event(
         &self,

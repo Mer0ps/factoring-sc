@@ -42,5 +42,6 @@
   "managedWriteLog",
   "signalError",
   "smallIntFinishUnsigned",
-  "smallIntGetUnsignedArgument"
+  "smallIntGetUnsignedArgument",
+  "validateTokenIdentifier"
 ]

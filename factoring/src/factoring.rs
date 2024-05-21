@@ -6,7 +6,7 @@ use multiversx_sc::imports::*;
 mod errors;
 mod storage;
 mod company;
-mod admin_whitelist;
+mod admin_config;
 mod invoice;
 mod contract;
 mod events;
@@ -25,7 +25,7 @@ pub const MIN_SCORE: u8 = 80;
 
 #[multiversx_sc::contract]
 pub trait Factoring :
-    admin_whitelist::AdminWhitelistModule   
+    admin_config::AdminConfigModule   
     + storage::Storage
     + events::EventsModule
     + stable_farming::StableFarmingModule
@@ -90,17 +90,21 @@ pub trait Factoring :
     }
 
     #[endpoint(addInvoice)]
-    fn add_invoice(&self, id_contract: u64, hash: ManagedBuffer, amount: BigUint, due_date: u64){
+    fn add_invoice(&self, id_contract: u64, hash: ManagedBuffer, amount: BigUint, issue_date: u64, due_date: u64){
         let caller = self.blockchain().get_caller();
         let contract = self.customer_contracts(&id_contract).get();
         self.require_valid_administrator(contract.id_supplier, &caller);
+
+        let (rate, _timestamp) = self.euribor_rate().get();
 
         let new_invoice = Invoice {
             hash: hash.clone(),
             amount: amount.clone(),
             identifier: EgldOrEsdtTokenIdentifier::egld(),
             status: Status::PendingValidation,
+            issue_date: issue_date,
             due_date: due_date,
+            euribor_rate: rate,
             payed_date: Option::None
         };
 
@@ -109,6 +113,23 @@ pub trait Factoring :
         let invoice_id = self.invoices_by_contract(&id_contract).len() as u64;
 
         self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp());
+    }
+
+    fn calculate_financing_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
+        let duration_seconds = invoice.due_date - invoice.issue_date;
+        let duration_days = duration_seconds / (24 * 60 * 60);
+        let daily_rate = BigUint::from(invoice.euribor_rate) / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
+        invoice.amount.clone() * daily_rate * duration_days
+    }
+
+    fn calculate_commission(&self, amount: &BigUint) -> BigUint {
+        BigUint::from(DEFAULT_PERCENT_FEE) * amount / BigUint::from(ONE_HUNDRED_PERCENT)
+    }
+
+    fn calculate_total_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
+        let commission = self.calculate_commission(&invoice.amount);
+        let financing_fees = self.calculate_financing_fees(&invoice);
+        commission + financing_fees
     }
 
     #[endpoint(confirmInvoice)]
@@ -162,44 +183,9 @@ pub trait Factoring :
             .egld_or_single_esdt(&invoice.identifier, 0, &percent_to_pay)
             .transfer_if_not_empty();
 
-        invoice.status = Status::Funded;
+        invoice.status = Status::PartiallyFunded;
         self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
         self.invoice_fund_event(id_contract, id_invoice, self.blockchain().get_block_timestamp());
-    }
-
-    #[endpoint(mintWithUnusedLiquidity)]
-    fn mint_with_unused_liquidity(&self){
-        self.require_caller_is_admin();
-
-        self.mint();
-    }
-
-    #[endpoint(enterMarketWithUnusedLiquidity)]
-    fn enter_market_with_unused_liquidity(&self){
-        self.require_caller_is_admin();
-
-        self.enter_market();
-    }
-
-    #[endpoint(exitMarketFarm)]
-    fn exit_market_farm(&self){
-        self.require_caller_is_admin();
-
-        self.exit_market();
-    }
-
-    #[endpoint(withdrawLiquidity)]
-    fn withdraw_liquidity(&self){
-        self.require_caller_is_admin();
-
-        self.redeem_liquidity();
-    }
-
-    #[endpoint(claimFarmingRewards)]
-    fn claim_farming_rewards(&self){
-        self.require_caller_is_admin();
-
-        self.claim_rewards();
     }
 
     #[payable("*")]
@@ -211,7 +197,7 @@ pub trait Factoring :
 
         let mut invoice = self.invoices_by_contract(&id_contract).get(id_invoice as usize);
 
-        require!(invoice.status == Status::Funded, INVOICE_NOT_PAYABLE);
+        require!(invoice.status == Status::PartiallyFunded, INVOICE_NOT_PAYABLE);
         
         
         let (payment_token, _, payment_amount) = self.call_value().egld_or_single_esdt().into_tuple();
@@ -229,7 +215,7 @@ pub trait Factoring :
 
         }
 
-        self.pay_invoice_fn(&contract, &mut invoice, id_contract, id_invoice);
+        self.pay_invoice_fn(&mut invoice, id_contract, id_invoice);
     }
 
     #[endpoint(payInvoiceAuto)]
@@ -242,25 +228,25 @@ pub trait Factoring :
         
         require!(available_funds >= invoice.amount, NOT_ENOUGH_FUNDS);
 
-        self.pay_invoice_fn(&contract, &mut invoice, id_contract, id_invoice);
+        self.pay_invoice_fn(&mut invoice, id_contract, id_invoice);
 
         self.funds_by_account(&contract.id_client).update(|val| *val -= invoice.amount);
     }
 
-    fn pay_invoice_fn(&self, contract: &CustomerContract, invoice: &mut Invoice<Self::Api>, id_contract: u64, id_invoice: u64){
+    fn pay_invoice_fn(&self, invoice: &mut Invoice<Self::Api>, id_contract: u64, id_invoice: u64){
 
-        let already_paid = BigUint::from(DEFAULT_PERCENT_PAY) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
-        let remaining_amount = invoice.amount.clone() - already_paid;
-        let fees = BigUint::from(DEFAULT_PERCENT_FEE) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
-        let amount_to_send = remaining_amount - fees;
+        // let already_paid = BigUint::from(DEFAULT_PERCENT_PAY) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
+        // let remaining_amount = invoice.amount.clone() - already_paid;
+        // let fees = BigUint::from(DEFAULT_PERCENT_FEE) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
+        // let amount_to_send = remaining_amount - fees;
         let current_timestamp = self.blockchain().get_block_timestamp();
 
-        let company = self.companies(&contract.id_supplier).get();
+        // let company = self.companies(&contract.id_supplier).get();
 
-        self.tx()
-            .to(&company.withdraw_address)
-            .egld_or_single_esdt(&invoice.identifier, 0, &amount_to_send)
-            .transfer_if_not_empty();
+        // self.tx()
+        //     .to(&company.withdraw_address)
+        //     .egld_or_single_esdt(&invoice.identifier, 0, &amount_to_send)
+        //     .transfer_if_not_empty();
 
         invoice.status = Status::Payed;
         invoice.payed_date = Option::Some(current_timestamp);
@@ -269,11 +255,35 @@ pub trait Factoring :
         self.invoice_pay_event(id_contract, id_invoice, current_timestamp);        
     }
 
-    #[payable("*")]
-    #[endpoint(addFunds)]
-    fn add_funds(&self) {
+
+    #[endpoint(fundRemainingAmount)]
+    fn fund_remaining_amount(&self, id_contract: u64, id_invoice: u64){
+
         self.require_caller_is_admin();
-        self.sc_add_funds_event();
+        let current_timestamp = self.blockchain().get_block_timestamp();
+
+        let mut invoice = self.invoices_by_contract(&id_contract).get(id_invoice as usize);
+
+        require!(invoice.status == Status::Payed, INVOICE_NOT_FULLY_FUNDABLE);
+        //require!(invoice.due_date < current_timestamp, INVOICE_DUE_DATE_NOT_REACHED);
+
+        let already_paid = BigUint::from(DEFAULT_PERCENT_PAY) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
+        let remaining_amount = invoice.amount.clone() - already_paid;
+        let total_fees = self.calculate_total_fees(&invoice);
+        let amount_to_send = remaining_amount - total_fees;
+        
+        let contract = self.customer_contracts(&id_contract).get();
+        let company = self.companies(&contract.id_supplier).get();
+
+        self.tx()
+            .to(&company.withdraw_address)
+            .egld_or_single_esdt(&invoice.identifier, 0, &amount_to_send)
+            .transfer_if_not_empty();
+
+        invoice.status = Status::FullyFunded;
+        self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
+
+        self.invoice_fully_fund_event(id_contract, id_invoice, current_timestamp);        
     }
 
     #[payable("EGLD")]

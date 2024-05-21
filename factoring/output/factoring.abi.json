@@ -92,6 +92,10 @@
                     "type": "BigUint"
                 },
                 {
+                    "name": "issue_date",
+                    "type": "u64"
+                },
+                {
                     "name": "due_date",
                     "type": "u64"
                 }
@@ -148,36 +152,6 @@
             "outputs": []
         },
         {
-            "name": "mintWithUnusedLiquidity",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "enterMarketWithUnusedLiquidity",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "exitMarketFarm",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "withdrawLiquidity",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "claimFarmingRewards",
-            "mutability": "mutable",
-            "inputs": [],
-            "outputs": []
-        },
-        {
             "name": "payInvoice",
             "mutability": "mutable",
             "payableInTokens": [
@@ -211,12 +185,18 @@
             "outputs": []
         },
         {
-            "name": "addFunds",
+            "name": "fundRemainingAmount",
             "mutability": "mutable",
-            "payableInTokens": [
-                "*"
+            "inputs": [
+                {
+                    "name": "id_contract",
+                    "type": "u64"
+                },
+                {
+                    "name": "id_invoice",
+                    "type": "u64"
+                }
             ],
-            "inputs": [],
             "outputs": []
         },
         {
@@ -245,6 +225,45 @@
             "outputs": []
         },
         {
+            "name": "addFunds",
+            "mutability": "mutable",
+            "payableInTokens": [
+                "*"
+            ],
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "mintWithUnusedLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "enterMarketWithUnusedLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "exitMarketFarm",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "withdrawLiquidity",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
+            "name": "claimFarmingRewards",
+            "mutability": "mutable",
+            "inputs": [],
+            "outputs": []
+        },
+        {
             "name": "addUserToAdminList",
             "mutability": "mutable",
             "inputs": [
@@ -262,6 +281,43 @@
                 {
                     "name": "address",
                     "type": "Address"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "addEuriborRate",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "timestamp",
+                    "type": "u64"
+                },
+                {
+                    "name": "rate",
+                    "type": "u8"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "addAllowedToken",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "token",
+                    "type": "TokenIdentifier"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "removeAllowedToken",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "token",
+                    "type": "TokenIdentifier"
                 }
             ],
             "outputs": []
@@ -465,6 +521,26 @@
             ]
         },
         {
+            "identifier": "invoice_fully_fund_event",
+            "inputs": [
+                {
+                    "name": "id_contract",
+                    "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "id_invoice",
+                    "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "timestamp",
+                    "type": "u64",
+                    "indexed": true
+                }
+            ]
+        },
+        {
             "identifier": "contract_create_event",
             "inputs": [
                 {
@@ -643,8 +719,16 @@
                     "type": "Status"
                 },
                 {
+                    "name": "issue_date",
+                    "type": "u64"
+                },
+                {
                     "name": "due_date",
                     "type": "u64"
+                },
+                {
+                    "name": "euribor_rate",
+                    "type": "u8"
                 },
                 {
                     "name": "payed_date",
@@ -664,7 +748,7 @@
                     "discriminant": 1
                 },
                 {
-                    "name": "Funded",
+                    "name": "PartiallyFunded",
                     "discriminant": 2
                 },
                 {
@@ -672,8 +756,12 @@
                     "discriminant": 3
                 },
                 {
-                    "name": "Refused",
+                    "name": "FullyFunded",
                     "discriminant": 4
+                },
+                {
+                    "name": "Refused",
+                    "discriminant": 5
                 }
             ]
         }

@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           25
+// Endpoints:                           29
 // Async Callback (empty):               1
-// Total number of exported functions:  28
+// Total number of exported functions:  32
 
 #![no_std]
 
@@ -27,18 +27,22 @@ multiversx_sc_wasm_adapter::endpoints! {
         confirmInvoice => confirm_invoice
         addCompanyAdministrator => add_company_administrator
         fundInvoice => fund_invoice
+        payInvoice => pay_invoice
+        payInvoiceAuto => pay_invoice_auto
+        fundRemainingAmount => fund_remaining_amount
+        addAccountFunds => add_account_funds
+        calculateReliabilityScore => calculate_reliability_score
+        addFunds => add_funds
         mintWithUnusedLiquidity => mint_with_unused_liquidity
         enterMarketWithUnusedLiquidity => enter_market_with_unused_liquidity
         exitMarketFarm => exit_market_farm
         withdrawLiquidity => withdraw_liquidity
         claimFarmingRewards => claim_farming_rewards
-        payInvoice => pay_invoice
-        payInvoiceAuto => pay_invoice_auto
-        addFunds => add_funds
-        addAccountFunds => add_account_funds
-        calculateReliabilityScore => calculate_reliability_score
         addUserToAdminList => add_user_to_admin_list
         removeUserFromAdminList => remove_user_from_admin_list
+        addEuriborRate => add_euribor_rate
+        addAllowedToken => add_allowed_tokens
+        removeAllowedToken => remove_allowed_tokens
         getCompany => companies
         getCustomerContract => customer_contracts
         getInvoicesByContract => invoices_by_contract

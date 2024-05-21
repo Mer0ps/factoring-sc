@@ -6,9 +6,10 @@ multiversx_sc::derive_imports!();
 pub enum Status {
     PendingValidation = 0,
     Valid = 1,
-    Funded = 2,
+    PartiallyFunded = 2,
     Payed = 3,
-    Refused = 4,
+    FullyFunded = 4,
+    Refused = 5,
 }
 
 #[type_abi]
@@ -18,6 +19,8 @@ pub struct Invoice<M: ManagedTypeApi> {
  pub amount: BigUint<M>,
  pub identifier: EgldOrEsdtTokenIdentifier<M>,
  pub status: Status,
+ pub issue_date: u64,
  pub due_date: u64,
+ pub euribor_rate: u8,
  pub payed_date: Option<u64>
 }
