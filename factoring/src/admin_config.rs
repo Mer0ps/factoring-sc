@@ -67,11 +67,16 @@ pub trait AdminConfigModule :
     fn add_euribor_rate(&self, timestamp: u64, rate: u32) {
         self.require_caller_is_admin();
 
-        let (_rate, old_timestamp) = self.euribor_rate().get();
+        if self.euribor_rate().is_empty() {
+            
+            self.euribor_rate().set((rate, timestamp));
 
-        require!(timestamp > old_timestamp, TIMESTAMP_MUST_BE_HIGHER);
-
-        self.euribor_rate().set((rate, timestamp));
+        }else{
+            
+            let (_, old_timestamp) = self.euribor_rate().get();
+            require!(timestamp > old_timestamp, TIMESTAMP_MUST_BE_HIGHER);
+            self.euribor_rate().set((rate, timestamp));
+        }
     }
 
     #[endpoint(addAllowedToken)]
