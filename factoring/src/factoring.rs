@@ -116,13 +116,13 @@ pub trait Factoring :
     }
 
     #[view(calculateFinancingFees)]
-    fn calculate_financing_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
-        let duration_seconds = invoice.due_date - invoice.issue_date;
+    fn calculate_financing_fees(&self, amount: &BigUint, due_date: u64, issue_date: u64, euribor_rate: u32) -> BigUint {
+        let duration_seconds = due_date - issue_date;
         let duration_days = duration_seconds / (24 * 60 * 60); 
 
-        let total_rate = BigUint::from(invoice.euribor_rate) * BigUint::from(duration_days);
+        let total_rate = BigUint::from(euribor_rate) * BigUint::from(duration_days);
 
-        let financing_fees = invoice.amount.clone() * total_rate / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
+        let financing_fees = amount * &total_rate / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
 
         financing_fees
     }
@@ -134,7 +134,7 @@ pub trait Factoring :
 
     fn calculate_total_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
         let commission = self.calculate_commission(&invoice.amount);
-        let financing_fees = self.calculate_financing_fees(&invoice);
+        let financing_fees = self.calculate_financing_fees(&invoice.amount, invoice.due_date, invoice.issue_date, invoice.euribor_rate);
         commission + financing_fees
     }
 

@@ -107,8 +107,20 @@
             "mutability": "readonly",
             "inputs": [
                 {
-                    "name": "invoice",
-                    "type": "Invoice"
+                    "name": "amount",
+                    "type": "BigUint"
+                },
+                {
+                    "name": "due_date",
+                    "type": "u64"
+                },
+                {
+                    "name": "issue_date",
+                    "type": "u64"
+                },
+                {
+                    "name": "euribor_rate",
+                    "type": "u32"
                 }
             ],
             "outputs": [
