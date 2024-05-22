@@ -103,6 +103,36 @@
             "outputs": []
         },
         {
+            "name": "calculateFinancingFees",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "invoice",
+                    "type": "Invoice"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "calculateCommission",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
+        },
+        {
             "name": "confirmInvoice",
             "mutability": "mutable",
             "inputs": [

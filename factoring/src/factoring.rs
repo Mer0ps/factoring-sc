@@ -115,13 +115,19 @@ pub trait Factoring :
         self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp());
     }
 
+    #[view(calculateFinancingFees)]
     fn calculate_financing_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
         let duration_seconds = invoice.due_date - invoice.issue_date;
-        let duration_days = duration_seconds / (24 * 60 * 60);
-        let daily_rate = BigUint::from(invoice.euribor_rate) / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
-        invoice.amount.clone() * daily_rate * duration_days
+        let duration_days = duration_seconds / (24 * 60 * 60); 
+
+        let total_rate = BigUint::from(invoice.euribor_rate) * BigUint::from(duration_days);
+
+        let financing_fees = invoice.amount.clone() * total_rate / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
+
+        financing_fees
     }
 
+    #[view(calculateCommission)]
     fn calculate_commission(&self, amount: &BigUint) -> BigUint {
         BigUint::from(DEFAULT_PERCENT_FEE) * amount / BigUint::from(ONE_HUNDRED_PERCENT)
     }

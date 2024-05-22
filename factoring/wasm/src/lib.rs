@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           29
+// Endpoints:                           31
 // Async Callback (empty):               1
-// Total number of exported functions:  32
+// Total number of exported functions:  34
 
 #![no_std]
 
@@ -24,6 +24,8 @@ multiversx_sc_wasm_adapter::endpoints! {
         createFactoringContract => create_factoring_contract
         signContract => sign_contract
         addInvoice => add_invoice
+        calculateFinancingFees => calculate_financing_fees
+        calculateCommission => calculate_commission
         confirmInvoice => confirm_invoice
         addCompanyAdministrator => add_company_administrator
         fundInvoice => fund_invoice
