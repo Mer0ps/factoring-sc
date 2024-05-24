@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           31
+// Endpoints:                           29
 // Async Callback (empty):               1
-// Total number of exported functions:  34
+// Total number of exported functions:  32
 
 #![no_std]
 
@@ -20,19 +20,12 @@ multiversx_sc_wasm_adapter::endpoints! {
     (
         init => init
         upgrade => upgrade
-        addCompany => add_company
-        createFactoringContract => create_factoring_contract
-        signContract => sign_contract
         addInvoice => add_invoice
-        calculateFinancingFees => calculate_financing_fees
-        calculateCommission => calculate_commission
         confirmInvoice => confirm_invoice
-        addCompanyAdministrator => add_company_administrator
         fundInvoice => fund_invoice
         payInvoice => pay_invoice
         payInvoiceAuto => pay_invoice_auto
         fundRemainingAmount => fund_remaining_amount
-        addAccountFunds => add_account_funds
         calculateReliabilityScore => calculate_reliability_score
         addFunds => add_funds
         mintWithUnusedLiquidity => mint_with_unused_liquidity
@@ -51,6 +44,11 @@ multiversx_sc_wasm_adapter::endpoints! {
         getContractsClientByAccount => contracts_client_by_account
         getAvailableAssetByAccountAndIdentifier => assets_by_account_and_identifier
         getFundsByAccount => funds_by_account
+        addCompany => add_company
+        createFactoringContract => create_factoring_contract
+        signContract => sign_contract
+        addCompanyAdministrator => add_company_administrator
+        addAccountFunds => add_account_funds
     )
 }
 

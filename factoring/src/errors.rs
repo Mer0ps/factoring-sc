@@ -8,4 +8,3 @@ pub const INVOICE_DUE_DATE_NOT_REACHED: &[u8] = b"You must wait due date";
 pub const INVOICE_NOT_PAYABLE: &[u8] = b"You can't pay this invoice";
 pub const INSUFFICIENT_SCORE: &[u8] = b"You upgrade your score to valid more invoices";
 pub const TIMESTAMP_MUST_BE_HIGHER: &[u8] = b"New rate must have a higher timestamp";
-pub const INVALID_TOKEN_ID: &[u8] = b"Invalid token ID"; 

@@ -12,6 +12,9 @@ pub trait AdminConfigModule :
     #[endpoint(addFunds)]
     fn add_funds(&self) {
         self.require_caller_is_admin();
+        let (token_identifier, _, _) = self.call_value().egld_or_single_esdt().into_tuple();
+        self.allowed_tokens().require_whitelisted(&token_identifier);
+        
         self.sc_add_funds_event();
     }
 
@@ -80,17 +83,15 @@ pub trait AdminConfigModule :
     }
 
     #[endpoint(addAllowedToken)]
-    fn add_allowed_tokens(&self, token: TokenIdentifier) {
+    fn add_allowed_tokens(&self, token: EgldOrEsdtTokenIdentifier) {
         self.require_caller_is_admin();
-        require!(token.is_valid_esdt_identifier(), INVALID_TOKEN_ID);
 
         self.allowed_tokens().add(&token);
     }
 
     #[endpoint(removeAllowedToken)]
-    fn remove_allowed_tokens(&self, token: TokenIdentifier) {
+    fn remove_allowed_tokens(&self, token: EgldOrEsdtTokenIdentifier) {
         self.require_caller_is_admin();
-        require!(token.is_valid_esdt_identifier(), INVALID_TOKEN_ID);
 
         self.allowed_tokens().remove(&token);
     }
@@ -105,6 +106,10 @@ pub trait AdminConfigModule :
         self.admin_whitelist().require_whitelisted(&caller);
     }
 
+    fn get_current_funds(&self, token_identifier: &EgldOrEsdtTokenIdentifier) -> BigUint {
+        self.blockchain().get_sc_balance(token_identifier, 0)
+    }
+
     #[storage_mapper("adminWhitelist")]
     fn admin_whitelist(&self) -> WhitelistMapper<Self::Api, ManagedAddress>;
 
@@ -112,5 +117,5 @@ pub trait AdminConfigModule :
     fn euribor_rate(&self) -> SingleValueMapper<(u32, u64)>;
 
     #[storage_mapper("allowedTokens")]
-    fn allowed_tokens(&self) -> WhitelistMapper<TokenIdentifier>;
+    fn allowed_tokens(&self) -> WhitelistMapper<EgldOrEsdtTokenIdentifier>;
 }

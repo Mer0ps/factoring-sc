@@ -15,7 +15,6 @@
   "getArgumentLength",
   "getBlockTimestamp",
   "getNumArguments",
-  "getNumESDTTransfers",
   "mBufferAppend",
   "mBufferAppendBytes",
   "mBufferCopyByteSlice",
@@ -42,6 +41,5 @@
   "managedWriteLog",
   "signalError",
   "smallIntFinishUnsigned",
-  "smallIntGetUnsignedArgument",
-  "validateTokenIdentifier"
+  "smallIntGetUnsignedArgument"
 ]

@@ -12,15 +12,12 @@ mod contract;
 mod events;
 mod stable_farming;
 mod hatom_proxy;
+mod account_manager;
 
-use crate::{invoice::*, contract::CustomerContract};
-
-use crate::errors::*;
-use crate::company::*;
+use crate::{invoice::*, errors::*, company::*};
 
 pub const DEFAULT_PERCENT_PAY: u64 = 7_000; //70%
 pub const ONE_HUNDRED_PERCENT: u64 = 10_000; //100%
-pub const DEFAULT_SCORE: u8 = 100;
 pub const MIN_SCORE: u8 = 80;
 
 #[multiversx_sc::contract]
@@ -29,6 +26,7 @@ pub trait Factoring :
     + storage::Storage
     + events::EventsModule
     + stable_farming::StableFarmingModule
+    + account_manager::AccountManagerModule
 {
     #[init]
     fn init(&self) {}
@@ -36,62 +34,10 @@ pub trait Factoring :
     #[upgrade]
     fn upgrade(&self) {}
 
-    #[endpoint(addCompany)]
-    fn add_company(&self, id_offchain: u64, administrators: ManagedVec<ManagedAddress>, is_kyc: bool, withdraw_address: ManagedAddress){
-        self.require_caller_is_admin();
-        let id_company = self.company_count().get();
-
-        let new_company = Company {
-            id_offchain: id_offchain,
-            administrators: administrators,
-            is_kyc: is_kyc,
-            fee: DEFAULT_PERCENT_FEE,
-            withdraw_address: withdraw_address,
-            reliability_score: DEFAULT_SCORE
-        };
-
-        self.company_count().set(id_company + 1);
-        self.companies(&id_company).set(new_company);
-        self.company_create_event(id_offchain, id_company, DEFAULT_SCORE, DEFAULT_PERCENT_FEE);
-    }
-
-    #[endpoint(createFactoringContract)]
-    fn create_factoring_contract(&self, id_supplier: u64, id_client: u64) {
-        let caller = self.blockchain().get_caller();
-        self.require_valid_administrator(id_supplier, &caller);
-
-        let new_contract = CustomerContract {
-            id_supplier: id_supplier,
-            id_client: id_client,
-            is_signed: false
-        };
-
-        let id_contract = self.customer_contract_count().get();
-
-        self.customer_contract_count().set(id_contract + 1);
-        self.customer_contracts(&id_contract).set(new_contract);
-
-        self.contract_create_event(id_supplier, id_client, id_contract);
-    }
-
-    #[endpoint(signContract)]
-    fn sign_contract(&self, id_contract: u64){
-        let caller = self.blockchain().get_caller();
-        let contract = self.customer_contracts(&id_contract).get();
-        self.require_valid_administrator(contract.id_client, &caller);
-
-        self.customer_contracts(&id_contract).update(|contract| {
-            contract.is_signed = true
-        });
-
-        self.contracts_client_by_account(&contract.id_client).insert(id_contract);
-
-        self.contract_sign_event(id_contract);
-    }
-
     #[endpoint(addInvoice)]
-    fn add_invoice(&self, id_contract: u64, hash: ManagedBuffer, amount: BigUint, issue_date: u64, due_date: u64){
+    fn add_invoice(&self, id_contract: u64, hash: ManagedBuffer, amount: BigUint, issue_date: u64, due_date: u64, token_identifier: EgldOrEsdtTokenIdentifier){
         let caller = self.blockchain().get_caller();
+        self.allowed_tokens().require_whitelisted(&token_identifier);
         let contract = self.customer_contracts(&id_contract).get();
         self.require_valid_administrator(contract.id_supplier, &caller);
 
@@ -100,7 +46,7 @@ pub trait Factoring :
         let new_invoice = Invoice {
             hash: hash.clone(),
             amount: amount.clone(),
-            identifier: EgldOrEsdtTokenIdentifier::egld(),
+            identifier: token_identifier,
             status: Status::PendingValidation,
             issue_date: issue_date,
             due_date: due_date,
@@ -113,29 +59,6 @@ pub trait Factoring :
         let invoice_id = self.invoices_by_contract(&id_contract).len() as u64;
 
         self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp());
-    }
-
-    #[view(calculateFinancingFees)]
-    fn calculate_financing_fees(&self, amount: &BigUint, due_date: u64, issue_date: u64, euribor_rate: u32) -> BigUint {
-        let duration_seconds = due_date - issue_date;
-        let duration_days = duration_seconds / (24 * 60 * 60); 
-
-        let total_rate = BigUint::from(euribor_rate) * BigUint::from(duration_days);
-
-        let financing_fees = amount * &total_rate / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
-
-        financing_fees
-    }
-
-    #[view(calculateCommission)]
-    fn calculate_commission(&self, amount: &BigUint) -> BigUint {
-        BigUint::from(DEFAULT_PERCENT_FEE) * amount / BigUint::from(ONE_HUNDRED_PERCENT)
-    }
-
-    fn calculate_total_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
-        let commission = self.calculate_commission(&invoice.amount);
-        let financing_fees = self.calculate_financing_fees(&invoice.amount, invoice.due_date, invoice.issue_date, invoice.euribor_rate);
-        commission + financing_fees
     }
 
     #[endpoint(confirmInvoice)]
@@ -154,15 +77,6 @@ pub trait Factoring :
         invoice.status = status;
         self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
         self.invoice_confirm_event(id_contract, id_invoice, status, self.blockchain().get_block_timestamp());
-    }
-
-    #[endpoint(addCompanyAdministrator)]
-    fn add_company_administrator(&self, company_id: u64, new_admin: ManagedAddress){
-        let caller = self.blockchain().get_caller();
-        self.require_valid_administrator(company_id, &caller);
-
-        self.companies(&company_id).update(|val| val.administrators.push(new_admin.clone()));
-        self.company_add_admin_event(company_id, new_admin.clone());
     }
 
     #[endpoint(fundInvoice)]
@@ -229,14 +143,15 @@ pub trait Factoring :
         self.require_caller_is_admin();
         
         let contract = self.customer_contracts(&id_contract).get();
-        let available_funds = self.funds_by_account(&contract.id_client).get();
         let mut invoice = self.invoices_by_contract(&id_contract).get(id_invoice as usize);
+        
+        let available_funds = self.funds_by_account(&contract.id_client, &invoice.identifier).get();
         
         require!(available_funds >= invoice.amount, NOT_ENOUGH_FUNDS);
 
         self.pay_invoice_fn(&mut invoice, id_contract, id_invoice);
 
-        self.funds_by_account(&contract.id_client).update(|val| *val -= invoice.amount);
+        self.funds_by_account(&contract.id_client, &invoice.identifier).update(|val| *val -= invoice.amount);
     }
 
     fn pay_invoice_fn(&self, invoice: &mut Invoice<Self::Api>, id_contract: u64, id_invoice: u64){
@@ -292,28 +207,6 @@ pub trait Factoring :
         self.invoice_fully_fund_event(id_contract, id_invoice, current_timestamp);        
     }
 
-    #[payable("EGLD")]
-    #[endpoint(addAccountFunds)]
-    fn add_account_funds(&self, id_account: u64) {
-        let caller = self.blockchain().get_caller();
-        self.require_valid_administrator(id_account, &caller);
-
-        let payment_amount = self.call_value().egld_value().clone_value();
-        
-        self.funds_by_account(&id_account).update(|val| *val += payment_amount);
-        self.company_add_funds_event(id_account);
-    }
-
-    fn require_valid_administrator(&self, company_id: u64, caller: &ManagedAddress) {
-        let company = self.companies(&company_id).get();
-
-        require!(company.administrators.contains(caller), CALLER_NOT_ADMIN);
-    }
-
-    fn get_current_funds(&self, token_identifier: &EgldOrEsdtTokenIdentifier) -> BigUint {
-        self.blockchain().get_sc_balance(token_identifier, 0)
-    }
-
     #[endpoint(calculateReliabilityScore)]
     fn calculate_reliability_score(&self, id_account: u64) {
 
@@ -354,5 +247,26 @@ pub trait Factoring :
                 }
             }
         }
+    }
+
+    fn calculate_financing_fees(&self, amount: &BigUint, due_date: u64, issue_date: u64, euribor_rate: u32) -> BigUint {
+        let duration_seconds = due_date - issue_date;
+        let duration_days = duration_seconds / (24 * 60 * 60); 
+
+        let total_rate = BigUint::from(euribor_rate) * BigUint::from(duration_days);
+
+        let financing_fees = amount * &total_rate / (BigUint::from(365u32) * BigUint::from(ONE_HUNDRED_PERCENT));
+
+        financing_fees
+    }
+
+    fn calculate_commission(&self, amount: &BigUint) -> BigUint {
+        BigUint::from(DEFAULT_PERCENT_FEE) * amount / BigUint::from(ONE_HUNDRED_PERCENT)
+    }
+
+    fn calculate_total_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
+        let commission = self.calculate_commission(&invoice.amount);
+        let financing_fees = self.calculate_financing_fees(&invoice.amount, invoice.due_date, invoice.issue_date, invoice.euribor_rate);
+        commission + financing_fees
     }
 }

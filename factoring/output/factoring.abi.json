@@ -27,55 +27,6 @@
     },
     "endpoints": [
         {
-            "name": "addCompany",
-            "mutability": "mutable",
-            "inputs": [
-                {
-                    "name": "id_offchain",
-                    "type": "u64"
-                },
-                {
-                    "name": "administrators",
-                    "type": "List<Address>"
-                },
-                {
-                    "name": "is_kyc",
-                    "type": "bool"
-                },
-                {
-                    "name": "withdraw_address",
-                    "type": "Address"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "createFactoringContract",
-            "mutability": "mutable",
-            "inputs": [
-                {
-                    "name": "id_supplier",
-                    "type": "u64"
-                },
-                {
-                    "name": "id_client",
-                    "type": "u64"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "signContract",
-            "mutability": "mutable",
-            "inputs": [
-                {
-                    "name": "id_contract",
-                    "type": "u64"
-                }
-            ],
-            "outputs": []
-        },
-        {
             "name": "addInvoice",
             "mutability": "mutable",
             "inputs": [
@@ -98,51 +49,13 @@
                 {
                     "name": "due_date",
                     "type": "u64"
+                },
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
                 }
             ],
             "outputs": []
-        },
-        {
-            "name": "calculateFinancingFees",
-            "mutability": "readonly",
-            "inputs": [
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                },
-                {
-                    "name": "due_date",
-                    "type": "u64"
-                },
-                {
-                    "name": "issue_date",
-                    "type": "u64"
-                },
-                {
-                    "name": "euribor_rate",
-                    "type": "u32"
-                }
-            ],
-            "outputs": [
-                {
-                    "type": "BigUint"
-                }
-            ]
-        },
-        {
-            "name": "calculateCommission",
-            "mutability": "readonly",
-            "inputs": [
-                {
-                    "name": "amount",
-                    "type": "BigUint"
-                }
-            ],
-            "outputs": [
-                {
-                    "type": "BigUint"
-                }
-            ]
         },
         {
             "name": "confirmInvoice",
@@ -159,21 +72,6 @@
                 {
                     "name": "status",
                     "type": "Status"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "addCompanyAdministrator",
-            "mutability": "mutable",
-            "inputs": [
-                {
-                    "name": "company_id",
-                    "type": "u64"
-                },
-                {
-                    "name": "new_admin",
-                    "type": "Address"
                 }
             ],
             "outputs": []
@@ -236,20 +134,6 @@
                 },
                 {
                     "name": "id_invoice",
-                    "type": "u64"
-                }
-            ],
-            "outputs": []
-        },
-        {
-            "name": "addAccountFunds",
-            "mutability": "mutable",
-            "payableInTokens": [
-                "EGLD"
-            ],
-            "inputs": [
-                {
-                    "name": "id_account",
                     "type": "u64"
                 }
             ],
@@ -348,7 +232,7 @@
             "inputs": [
                 {
                     "name": "token",
-                    "type": "TokenIdentifier"
+                    "type": "EgldOrEsdtTokenIdentifier"
                 }
             ],
             "outputs": []
@@ -359,7 +243,7 @@
             "inputs": [
                 {
                     "name": "token",
-                    "type": "TokenIdentifier"
+                    "type": "EgldOrEsdtTokenIdentifier"
                 }
             ],
             "outputs": []
@@ -452,6 +336,10 @@
                 {
                     "name": "id_account",
                     "type": "u64"
+                },
+                {
+                    "name": "identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
                 }
             ],
             "outputs": [
@@ -459,6 +347,84 @@
                     "type": "BigUint"
                 }
             ]
+        },
+        {
+            "name": "addCompany",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "id_offchain",
+                    "type": "u64"
+                },
+                {
+                    "name": "administrators",
+                    "type": "List<Address>"
+                },
+                {
+                    "name": "is_kyc",
+                    "type": "bool"
+                },
+                {
+                    "name": "withdraw_address",
+                    "type": "Address"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "createFactoringContract",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "id_supplier",
+                    "type": "u64"
+                },
+                {
+                    "name": "id_client",
+                    "type": "u64"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "signContract",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "id_contract",
+                    "type": "u64"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "addCompanyAdministrator",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "company_id",
+                    "type": "u64"
+                },
+                {
+                    "name": "new_admin",
+                    "type": "Address"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "addAccountFunds",
+            "mutability": "mutable",
+            "payableInTokens": [
+                "*"
+            ],
+            "inputs": [
+                {
+                    "name": "id_account",
+                    "type": "u64"
+                }
+            ],
+            "outputs": []
         }
     ],
     "events": [

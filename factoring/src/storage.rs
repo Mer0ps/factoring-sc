@@ -35,5 +35,5 @@ pub trait Storage {
 
     #[view(getFundsByAccount)]
     #[storage_mapper("funds_by_account")]
-    fn funds_by_account(&self, id_account: &u64) -> SingleValueMapper<BigUint>;
+    fn funds_by_account(&self, id_account: &u64, identifier: &EgldOrEsdtTokenIdentifier) -> SingleValueMapper<BigUint>;
 }
