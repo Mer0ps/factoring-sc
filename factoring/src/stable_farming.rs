@@ -22,8 +22,7 @@ pub trait StableFarmingModule {
         self.hatom_proxy(mm_sc_address)
             .mint()
             .with_esdt_transfer(payment)
-            .async_call()
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     fn enter_market(&self) {
@@ -44,8 +43,7 @@ pub trait StableFarmingModule {
         self.hatom_proxy(controller_sc_address)
             .enter_markets(OptionalValue::<BigUint>::None)
             .with_esdt_transfer(payment)
-            .async_call()
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     fn claim_rewards(&self) {
@@ -60,8 +58,7 @@ pub trait StableFarmingModule {
 
         self.hatom_proxy(controller_sc_address)
             .claim_rewards(false, true, true, money_markets, accounts)
-            .async_call()
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     fn exit_market(&self) {
@@ -78,8 +75,7 @@ pub trait StableFarmingModule {
 
         self.hatom_proxy(controller_sc_address)
             .exit_market(mm_sc_address, OptionalValue::<BigUint>::None)
-            .async_call()
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     fn redeem_liquidity(&self) {
@@ -100,8 +96,7 @@ pub trait StableFarmingModule {
         self.hatom_proxy(mm_sc_address)
             .redeem(OptionalValue::<BigUint>::None)
             .with_esdt_transfer(payment)
-            .async_call()
-            .call_and_exit();
+            .async_call_and_exit();
     }
 
     #[proxy]
