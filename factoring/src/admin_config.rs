@@ -64,6 +64,8 @@ pub trait AdminConfigModule :
     fn remove_user_from_admin_list(&self, address: ManagedAddress) {
         self.require_caller_is_admin();
         self.admin_whitelist().remove(&address);
+        
+        self.sc_remove_admin_event(address);
     }
 
     #[endpoint(addEuriborRate)]

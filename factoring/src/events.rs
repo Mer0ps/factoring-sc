@@ -99,6 +99,12 @@ pub trait EventsModule {
         #[indexed] address: ManagedAddress,
     );
 
+    #[event("sc_remove_admin_event")]
+    fn sc_remove_admin_event(
+        &self,
+        #[indexed] address: ManagedAddress,
+    );
+
     #[event("sc_add_funds_event")]
     fn sc_add_funds_event(
         &self,
