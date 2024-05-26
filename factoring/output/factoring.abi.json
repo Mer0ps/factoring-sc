@@ -151,7 +151,7 @@
             "outputs": []
         },
         {
-            "name": "addFunds",
+            "name": "addProcolFunds",
             "mutability": "mutable",
             "payableInTokens": [
                 "*"
@@ -160,8 +160,26 @@
             "outputs": []
         },
         {
+            "name": "removeProcolFunds",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
+                },
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
+            "outputs": []
+        },
+        {
             "name": "mintWithUnusedLiquidity",
             "mutability": "mutable",
+            "payableInTokens": [
+                "*"
+            ],
             "inputs": [],
             "outputs": []
         },
@@ -247,6 +265,21 @@
                 }
             ],
             "outputs": []
+        },
+        {
+            "name": "getProtocoleFunds",
+            "mutability": "readonly",
+            "inputs": [
+                {
+                    "name": "identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
+                }
+            ],
+            "outputs": [
+                {
+                    "type": "BigUint"
+                }
+            ]
         },
         {
             "name": "getCompany",
@@ -422,6 +455,25 @@
                 {
                     "name": "id_account",
                     "type": "u64"
+                }
+            ],
+            "outputs": []
+        },
+        {
+            "name": "removeAccountFunds",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "id_account",
+                    "type": "u64"
+                },
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
+                },
+                {
+                    "name": "amount",
+                    "type": "BigUint"
                 }
             ],
             "outputs": []
@@ -644,6 +696,16 @@
             ]
         },
         {
+            "identifier": "company_remove_funds_event",
+            "inputs": [
+                {
+                    "name": "id_company",
+                    "type": "u64",
+                    "indexed": true
+                }
+            ]
+        },
+        {
             "identifier": "sc_add_admin_event",
             "inputs": [
                 {
@@ -659,6 +721,26 @@
                 {
                     "name": "address",
                     "type": "Address",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "identifier": "sc_add_token_event",
+            "inputs": [
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier",
+                    "indexed": true
+                }
+            ]
+        },
+        {
+            "identifier": "sc_remove_token_event",
+            "inputs": [
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier",
                     "indexed": true
                 }
             ]

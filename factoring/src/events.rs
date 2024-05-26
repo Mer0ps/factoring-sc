@@ -93,6 +93,12 @@ pub trait EventsModule {
         #[indexed] id_company: u64,
     );
 
+    #[event("company_remove_funds_event")]
+    fn company_remove_funds_event(
+        &self,
+        #[indexed] id_company: u64,
+    );
+
     #[event("sc_add_admin_event")]
     fn sc_add_admin_event(
         &self,
@@ -103,6 +109,18 @@ pub trait EventsModule {
     fn sc_remove_admin_event(
         &self,
         #[indexed] address: ManagedAddress,
+    );
+
+    #[event("sc_add_token_event")]
+    fn sc_add_token_event(
+        &self,
+        #[indexed] token_identifier: EgldOrEsdtTokenIdentifier,
+    );
+
+    #[event("sc_remove_token_event")]
+    fn sc_remove_token_event(
+        &self,
+        #[indexed] token_identifier: EgldOrEsdtTokenIdentifier,
     );
 
     #[event("sc_add_funds_event")]

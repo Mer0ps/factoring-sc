@@ -4,24 +4,16 @@ multiversx_sc::imports!();
 #[multiversx_sc::module]
 pub trait StableFarmingModule {
 
-    fn mint(&self) {
-        let usdc_identifier = TokenIdentifier::from_esdt_bytes(b"USDC-350c4e");
-
-        let usdc_balance = self.blockchain().get_sc_balance(
-            &EgldOrEsdtTokenIdentifier::esdt(usdc_identifier.clone()),
-            0u64,
-        );
+    fn mint(&self, payment: &EsdtTokenPayment<Self::Api>) {
 
         //hatom mm sc on devnet
         let mm_sc_address = ManagedAddress::from(hex!(
             "0000000000000000050089e0c6a6b8e7bce45cefe166089c14e23e0cb8256509"
         ));
 
-        let payment = EsdtTokenPayment::new(usdc_identifier, 0u64, usdc_balance);
-
         self.hatom_proxy(mm_sc_address)
             .mint()
-            .with_esdt_transfer(payment)
+            .with_esdt_transfer(payment.clone())
             .async_call_and_exit();
     }
 

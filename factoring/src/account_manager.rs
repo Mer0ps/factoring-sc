@@ -87,6 +87,21 @@ pub trait AccountManagerModule :
         self.company_add_funds_event(id_account);
     }
 
+    #[endpoint(removeAccountFunds)]
+    fn remove_account_funds(&self, id_account: u64, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint) {
+        let caller = self.blockchain().get_caller();
+
+        self.allowed_tokens().require_whitelisted(&token_identifier);
+        self.require_valid_administrator(id_account, &caller);
+
+        let available_funds = self.funds_by_account(&id_account, &token_identifier).get();
+
+        require!(available_funds >= amount, NOT_ENOUGH_FUNDS);
+        
+        self.funds_by_account(&id_account, &token_identifier).update(|val| *val -= amount);
+        self.company_remove_funds_event(id_account);
+    }
+
     fn require_valid_administrator(&self, company_id: u64, caller: &ManagedAddress) {
         let company = self.companies(&company_id).get();
 

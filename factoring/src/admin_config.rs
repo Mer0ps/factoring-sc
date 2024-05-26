@@ -9,20 +9,50 @@ pub trait AdminConfigModule :
  {
 
     #[payable("*")]
-    #[endpoint(addFunds)]
-    fn add_funds(&self) {
+    #[endpoint(addProcolFunds)]
+    fn add_protocol_funds(&self) {
         self.require_caller_is_admin();
-        let (token_identifier, _, _) = self.call_value().egld_or_single_esdt().into_tuple();
+        let (token_identifier, _, payment_amount) = self.call_value().egld_or_single_esdt().into_tuple();
         self.allowed_tokens().require_whitelisted(&token_identifier);
+
+        self.protocol_funds(&token_identifier).update(|val| *val += payment_amount);
         
         self.sc_add_funds_event();
     }
 
+    #[endpoint(removeProcolFunds)]
+    fn remove_protocol_funds(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint) {
+        self.require_caller_is_admin();
+        self.allowed_tokens().require_whitelisted(&token_identifier);
+
+        let available_funds = self.protocol_funds(&token_identifier).get();
+
+        require!(available_funds >= amount, NOT_ENOUGH_FUNDS);
+
+
+
+        self.protocol_funds(&token_identifier).update(|val| *val -= amount);
+        
+        self.sc_add_funds_event();
+    }
+
+    #[payable("*")]
     #[endpoint(mintWithUnusedLiquidity)]
     fn mint_with_unused_liquidity(&self){
         self.require_caller_is_admin();
+        let payment = self.call_value().single_esdt();
+        let token_identifier = EgldOrEsdtTokenIdentifier::esdt(payment.token_identifier.clone());
+        
+        self.allowed_tokens().require_whitelisted(&token_identifier);
 
-        self.mint();
+        let token_amount_available = self.blockchain().get_sc_balance(
+            &token_identifier,
+            0u64,
+        );
+
+        require!(token_amount_available >= payment.amount, NOT_ENOUGH_FUNDS);
+
+        self.mint(&payment);
     }
 
     #[endpoint(enterMarketWithUnusedLiquidity)]
@@ -89,6 +119,7 @@ pub trait AdminConfigModule :
         self.require_caller_is_admin();
 
         self.allowed_tokens().add(&token);
+        self.sc_add_token_event(token);
     }
 
     #[endpoint(removeAllowedToken)]
@@ -96,6 +127,8 @@ pub trait AdminConfigModule :
         self.require_caller_is_admin();
 
         self.allowed_tokens().remove(&token);
+        
+        self.sc_remove_token_event(token);
     }
 
     fn require_caller_is_admin(&self) {
@@ -120,4 +153,8 @@ pub trait AdminConfigModule :
 
     #[storage_mapper("allowedTokens")]
     fn allowed_tokens(&self) -> WhitelistMapper<EgldOrEsdtTokenIdentifier>;
+
+    #[view(getProtocoleFunds)]
+    #[storage_mapper("protocole_funds")]
+    fn protocol_funds(&self, identifier: &EgldOrEsdtTokenIdentifier) -> SingleValueMapper<BigUint>;
 }
