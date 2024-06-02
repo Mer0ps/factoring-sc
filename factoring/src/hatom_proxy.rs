@@ -5,23 +5,13 @@ pub trait HatomProxyModule {
 
     //Method from money-market.abi
     #[payable("*")]
-    #[endpoint(mint)]
-    fn mint(&self) -> EsdtTokenPayment;
-
-    //Method from money-market.abi
-    #[payable("*")]
     #[endpoint(mintAndEnterMarket)]
-    fn mint_and_enter_market(&self, opt_account : Option<ManagedAddress>) -> EsdtTokenPayment;
+    fn mint_and_enter_market(&self, opt_account : OptionalValue<ManagedAddress>) -> EsdtTokenPayment;
 
     //Method from money-market.abi
     #[payable("*")]
     #[endpoint(redeem)]
     fn redeem(&self, underlying_amount : OptionalValue<BigUint>) -> MultiValue2<EgldOrEsdtTokenPayment, EsdtTokenPayment>;
-
-    //Method from controller.abi
-    #[payable("*")]
-    #[endpoint(enterMarkets)]
-    fn enter_markets(&self, opt_account : OptionalValue<BigUint>);
 
     //Method from controller.abi
     #[endpoint(exitMarket)]

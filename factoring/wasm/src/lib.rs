@@ -6,9 +6,9 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           32
+// Endpoints:                           33
 // Async Callback (empty):               1
-// Total number of exported functions:  35
+// Total number of exported functions:  36
 
 #![no_std]
 
@@ -28,9 +28,9 @@ multiversx_sc_wasm_adapter::endpoints! {
         fundRemainingAmount => fund_remaining_amount
         calculateReliabilityScore => calculate_reliability_score
         addProcolFunds => add_protocol_funds
+        setHatomControllerAddress => set_hatom_controller_address
         removeProcolFunds => remove_protocol_funds
         mintWithUnusedLiquidity => mint_with_unused_liquidity
-        enterMarketWithUnusedLiquidity => enter_market_with_unused_liquidity
         exitMarketFarm => exit_market_farm
         withdrawLiquidity => withdraw_liquidity
         claimFarmingRewards => claim_farming_rewards
@@ -39,13 +39,14 @@ multiversx_sc_wasm_adapter::endpoints! {
         addEuriborRate => add_euribor_rate
         addAllowedToken => add_allowed_tokens
         removeAllowedToken => remove_allowed_tokens
-        getProtocoleFunds => protocol_funds
+        getProtocolFunds => protocol_funds
         getCompany => companies
         getCustomerContract => customer_contracts
         getInvoicesByContract => invoices_by_contract
         getContractsClientByAccount => contracts_client_by_account
         getAvailableAssetByAccountAndIdentifier => assets_by_account_and_identifier
         getFundsByAccount => funds_by_account
+        getHatomControllerAddress => hatom_controller_address
         addCompany => add_company
         createFactoringContract => create_factoring_contract
         signContract => sign_contract

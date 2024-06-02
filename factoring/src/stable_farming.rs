@@ -1,49 +1,22 @@
-use multiversx_sc::hex_literal::hex;
 multiversx_sc::imports!();
 
 #[multiversx_sc::module]
-pub trait StableFarmingModule {
+pub trait StableFarmingModule : 
+    crate::storage::Storage {
 
-    fn mint(&self, payment: &EsdtTokenPayment<Self::Api>) {
+    fn mint_enter(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint, mm_sc_address: ManagedAddress) {
 
-        //hatom mm sc on devnet
-        let mm_sc_address = ManagedAddress::from(hex!(
-            "0000000000000000050089e0c6a6b8e7bce45cefe166089c14e23e0cb8256509"
-        ));
+        let payment = EgldOrEsdtTokenPayment::new(token_identifier, 0u64, amount);
 
         self.hatom_proxy(mm_sc_address)
-            .mint()
-            .with_esdt_transfer(payment.clone())
-            .async_call_and_exit();
-    }
-
-    fn enter_market(&self) {
-        let husdc_identifier = TokenIdentifier::from_esdt_bytes(b"HUSDC-9b1b64");
-
-        let husdc_balance = self.blockchain().get_sc_balance(
-            &EgldOrEsdtTokenIdentifier::esdt(husdc_identifier.clone()),
-            0u64,
-        );
-
-        //hatom controller sc on devnet
-        let controller_sc_address = ManagedAddress::from(hex!(
-            "00000000000000000500d6074059eb7a8d8a06d07e7bd3afebf9370626e36509"
-        ));
-
-        let payment = EsdtTokenPayment::new(husdc_identifier, 0u64, husdc_balance);
-
-        self.hatom_proxy(controller_sc_address)
-            .enter_markets(OptionalValue::<BigUint>::None)
-            .with_esdt_transfer(payment)
+            .mint_and_enter_market(OptionalValue::<ManagedAddress>::None)
+            .with_egld_or_single_esdt_transfer(payment)
             .async_call_and_exit();
     }
 
     fn claim_rewards(&self) {
 
-        //hatom controller sc on devnet
-        let controller_sc_address = ManagedAddress::from(hex!(
-            "00000000000000000500d6074059eb7a8d8a06d07e7bd3afebf9370626e36509"
-        ));
+        let controller_sc_address = self.hatom_controller_address().get();
 
         let money_markets = ManagedVec::<Self::Api, ManagedAddress<Self::Api>>::new();
         let accounts = ManagedVec::<Self::Api, ManagedAddress<Self::Api>>::new();
@@ -53,41 +26,22 @@ pub trait StableFarmingModule {
             .async_call_and_exit();
     }
 
-    fn exit_market(&self) {
+    fn exit_market(&self, mm_sc_address: ManagedAddress, amount: BigUint) {
 
-        //hatom controller sc on devnet
-        let controller_sc_address = ManagedAddress::from(hex!(
-            "00000000000000000500d6074059eb7a8d8a06d07e7bd3afebf9370626e36509"
-        ));
-
-        //hatom mm sc on devnet
-        let mm_sc_address = ManagedAddress::from(hex!(
-            "0000000000000000050089e0c6a6b8e7bce45cefe166089c14e23e0cb8256509"
-        ));
+        let controller_sc_address = self.hatom_controller_address().get();
 
         self.hatom_proxy(controller_sc_address)
-            .exit_market(mm_sc_address, OptionalValue::<BigUint>::None)
+            .exit_market(mm_sc_address, OptionalValue::Some(amount))
             .async_call_and_exit();
     }
 
-    fn redeem_liquidity(&self) {
-        let husdc_identifier = TokenIdentifier::from_esdt_bytes(b"HUSDC-9b1b64");
+    fn redeem_liquidity(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint, mm_sc_address: ManagedAddress) {
 
-        let husdc_balance = self.blockchain().get_sc_balance(
-            &EgldOrEsdtTokenIdentifier::esdt(husdc_identifier.clone()),
-            0u64,
-        );
-
-        //hatom mm sc on devnet
-        let mm_sc_address = ManagedAddress::from(hex!(
-            "0000000000000000050089e0c6a6b8e7bce45cefe166089c14e23e0cb8256509"
-        ));
-
-        let payment = EsdtTokenPayment::new(husdc_identifier, 0u64, husdc_balance);
+        let payment = EgldOrEsdtTokenPayment::new(token_identifier, 0u64, amount);
 
         self.hatom_proxy(mm_sc_address)
             .redeem(OptionalValue::<BigUint>::None)
-            .with_esdt_transfer(payment)
+            .with_egld_or_single_esdt_transfer(payment)
             .async_call_and_exit();
     }
 

@@ -160,6 +160,17 @@
             "outputs": []
         },
         {
+            "name": "setHatomControllerAddress",
+            "mutability": "mutable",
+            "inputs": [
+                {
+                    "name": "sc_address",
+                    "type": "Address"
+                }
+            ],
+            "outputs": []
+        },
+        {
             "name": "removeProcolFunds",
             "mutability": "mutable",
             "inputs": [
@@ -177,28 +188,54 @@
         {
             "name": "mintWithUnusedLiquidity",
             "mutability": "mutable",
-            "payableInTokens": [
-                "*"
+            "inputs": [
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
+                },
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                },
+                {
+                    "name": "mm_sc_address",
+                    "type": "Address"
+                }
             ],
-            "inputs": [],
-            "outputs": []
-        },
-        {
-            "name": "enterMarketWithUnusedLiquidity",
-            "mutability": "mutable",
-            "inputs": [],
             "outputs": []
         },
         {
             "name": "exitMarketFarm",
             "mutability": "mutable",
-            "inputs": [],
+            "inputs": [
+                {
+                    "name": "mm_sc_address",
+                    "type": "Address"
+                },
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                }
+            ],
             "outputs": []
         },
         {
             "name": "withdrawLiquidity",
             "mutability": "mutable",
-            "inputs": [],
+            "inputs": [
+                {
+                    "name": "token_identifier",
+                    "type": "EgldOrEsdtTokenIdentifier"
+                },
+                {
+                    "name": "amount",
+                    "type": "BigUint"
+                },
+                {
+                    "name": "mm_sc_address",
+                    "type": "Address"
+                }
+            ],
             "outputs": []
         },
         {
@@ -267,7 +304,7 @@
             "outputs": []
         },
         {
-            "name": "getProtocoleFunds",
+            "name": "getProtocolFunds",
             "mutability": "readonly",
             "inputs": [
                 {
@@ -378,6 +415,16 @@
             "outputs": [
                 {
                     "type": "BigUint"
+                }
+            ]
+        },
+        {
+            "name": "getHatomControllerAddress",
+            "mutability": "readonly",
+            "inputs": [],
+            "outputs": [
+                {
+                    "type": "Address"
                 }
             ]
         },
@@ -512,6 +559,16 @@
                     "name": "timestamp",
                     "type": "u64",
                     "indexed": true
+                },
+                {
+                    "name": "identifier",
+                    "type": "EgldOrEsdtTokenIdentifier",
+                    "indexed": true
+                },
+                {
+                    "name": "euribor_rate",
+                    "type": "u32",
+                    "indexed": true
                 }
             ]
         },
@@ -596,6 +653,16 @@
                 {
                     "name": "timestamp",
                     "type": "u64",
+                    "indexed": true
+                },
+                {
+                    "name": "commission_fees",
+                    "type": "BigUint",
+                    "indexed": true
+                },
+                {
+                    "name": "financing_fees",
+                    "type": "BigUint",
                     "indexed": true
                 }
             ]

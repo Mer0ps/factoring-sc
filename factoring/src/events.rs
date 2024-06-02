@@ -15,6 +15,8 @@ pub trait EventsModule {
         #[indexed] due_date: u64,
         #[indexed] invoice_id: u64,
         #[indexed] timestamp: u64,
+        #[indexed] identifier: EgldOrEsdtTokenIdentifier,
+        #[indexed] euribor_rate: u32,
     );
 
     #[event("invoice_confirm_event")]
@@ -48,6 +50,8 @@ pub trait EventsModule {
         #[indexed] id_contract: u64,
         #[indexed] id_invoice: u64,
         #[indexed] timestamp: u64,
+        #[indexed] commission_fees: BigUint,
+        #[indexed] financing_fees: BigUint,
     );
 
     #[event("contract_create_event")]

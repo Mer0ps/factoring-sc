@@ -40,12 +40,12 @@ pub trait Factoring :
         let contract = self.customer_contracts(&id_contract).get();
         self.require_valid_administrator(contract.id_supplier, &caller);
 
-        let (rate, _timestamp) = self.euribor_rate().get();
+        let (rate, _) = self.euribor_rate().get();
 
         let new_invoice = Invoice {
             hash: hash.clone(),
             amount: amount.clone(),
-            identifier: token_identifier,
+            identifier: token_identifier.clone(),
             status: Status::PendingValidation,
             issue_date: issue_date,
             due_date: due_date,
@@ -57,7 +57,7 @@ pub trait Factoring :
         
         let invoice_id = self.invoices_by_contract(&id_contract).len() as u64;
 
-        self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp());
+        self.invoice_add_event(id_contract, hash.clone(), amount.clone(), due_date, invoice_id, self.blockchain().get_block_timestamp(), token_identifier, rate);
     }
 
     #[endpoint(confirmInvoice)]
@@ -154,19 +154,7 @@ pub trait Factoring :
     }
 
     fn pay_invoice_fn(&self, invoice: &mut Invoice<Self::Api>, id_contract: u64, id_invoice: u64){
-
-        // let already_paid = BigUint::from(DEFAULT_PERCENT_PAY) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
-        // let remaining_amount = invoice.amount.clone() - already_paid;
-        // let fees = BigUint::from(DEFAULT_PERCENT_FEE) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
-        // let amount_to_send = remaining_amount - fees;
         let current_timestamp = self.blockchain().get_block_timestamp();
-
-        // let company = self.companies(&contract.id_supplier).get();
-
-        // self.tx()
-        //     .to(&company.withdraw_address)
-        //     .egld_or_single_esdt(&invoice.identifier, 0, &amount_to_send)
-        //     .transfer_if_not_empty();
 
         invoice.status = Status::Payed;
         invoice.payed_date = Option::Some(current_timestamp);
@@ -189,7 +177,10 @@ pub trait Factoring :
 
         let already_paid = BigUint::from(DEFAULT_PERCENT_PAY) * invoice.amount.clone() / BigUint::from(ONE_HUNDRED_PERCENT);
         let remaining_amount = invoice.amount.clone() - already_paid;
-        let total_fees = self.calculate_total_fees(&invoice);
+        
+        let commission_fees = self.calculate_commission(&invoice.amount);
+        let financing_fees = self.calculate_financing_fees(&invoice.amount, invoice.due_date, invoice.issue_date, invoice.euribor_rate);
+        let total_fees = commission_fees.clone() + financing_fees.clone();
         let amount_to_send = remaining_amount - total_fees;
         
         let contract = self.customer_contracts(&id_contract).get();
@@ -203,7 +194,7 @@ pub trait Factoring :
         invoice.status = Status::FullyFunded;
         self.invoices_by_contract(&id_contract).set(id_invoice as usize, &invoice);
 
-        self.invoice_fully_fund_event(id_contract, id_invoice, current_timestamp);        
+        self.invoice_fully_fund_event(id_contract, id_invoice, current_timestamp, commission_fees, financing_fees);        
     }
 
     #[endpoint(calculateReliabilityScore)]
@@ -261,11 +252,5 @@ pub trait Factoring :
 
     fn calculate_commission(&self, amount: &BigUint) -> BigUint {
         BigUint::from(DEFAULT_PERCENT_FEE) * amount / BigUint::from(ONE_HUNDRED_PERCENT)
-    }
-
-    fn calculate_total_fees(&self, invoice: &Invoice<Self::Api>) -> BigUint {
-        let commission = self.calculate_commission(&invoice.amount);
-        let financing_fees = self.calculate_financing_fees(&invoice.amount, invoice.due_date, invoice.issue_date, invoice.euribor_rate);
-        commission + financing_fees
     }
 }

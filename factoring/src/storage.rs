@@ -36,4 +36,8 @@ pub trait Storage {
     #[view(getFundsByAccount)]
     #[storage_mapper("funds_by_account")]
     fn funds_by_account(&self, id_account: &u64, identifier: &EgldOrEsdtTokenIdentifier) -> SingleValueMapper<BigUint>;
+
+    #[view(getHatomControllerAddress)]
+    #[storage_mapper("hatomControllerAddress")]
+    fn hatom_controller_address(&self) -> SingleValueMapper<Self::Api, ManagedAddress>;
 }

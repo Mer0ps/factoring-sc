@@ -6,6 +6,7 @@ use crate::errors::*;
 pub trait AdminConfigModule :
     super::events::EventsModule
     + crate::stable_farming::StableFarmingModule
+    + crate::storage::Storage
  {
 
     #[payable("*")]
@@ -18,6 +19,13 @@ pub trait AdminConfigModule :
         self.protocol_funds(&token_identifier).update(|val| *val += payment_amount);
         
         self.sc_add_funds_event();
+    }
+
+    #[endpoint(setHatomControllerAddress)]
+    fn set_hatom_controller_address(&self, sc_address: ManagedAddress) {
+        self.require_caller_is_admin();
+
+        self.hatom_controller_address().set(&sc_address);
     }
 
     #[endpoint(removeProcolFunds)]
@@ -36,44 +44,39 @@ pub trait AdminConfigModule :
         self.sc_add_funds_event();
     }
 
-    #[payable("*")]
     #[endpoint(mintWithUnusedLiquidity)]
-    fn mint_with_unused_liquidity(&self){
+    fn mint_with_unused_liquidity(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint, mm_sc_address: ManagedAddress){
         self.require_caller_is_admin();
-        let payment = self.call_value().single_esdt();
-        let token_identifier = EgldOrEsdtTokenIdentifier::esdt(payment.token_identifier.clone());
         
-        self.allowed_tokens().require_whitelisted(&token_identifier);
+        let token_amount_available = self.blockchain().get_sc_balance(
+            &token_identifier,
+            0u64,
+        );
+
+        require!(token_amount_available >= amount, NOT_ENOUGH_FUNDS);
+
+        self.mint_enter(token_identifier, amount, mm_sc_address);
+    }
+
+    #[endpoint(exitMarketFarm)]
+    fn exit_market_farm(&self, mm_sc_address: ManagedAddress, amount: BigUint){
+        self.require_caller_is_admin();
+
+        self.exit_market(mm_sc_address, amount);
+    }
+
+    #[endpoint(withdrawLiquidity)]
+    fn withdraw_liquidity(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint, mm_sc_address: ManagedAddress){
+        self.require_caller_is_admin();
 
         let token_amount_available = self.blockchain().get_sc_balance(
             &token_identifier,
             0u64,
         );
 
-        require!(token_amount_available >= payment.amount, NOT_ENOUGH_FUNDS);
+        require!(token_amount_available >= amount, NOT_ENOUGH_FUNDS);
 
-        self.mint(&payment);
-    }
-
-    #[endpoint(enterMarketWithUnusedLiquidity)]
-    fn enter_market_with_unused_liquidity(&self){
-        self.require_caller_is_admin();
-
-        self.enter_market();
-    }
-
-    #[endpoint(exitMarketFarm)]
-    fn exit_market_farm(&self){
-        self.require_caller_is_admin();
-
-        self.exit_market();
-    }
-
-    #[endpoint(withdrawLiquidity)]
-    fn withdraw_liquidity(&self){
-        self.require_caller_is_admin();
-
-        self.redeem_liquidity();
+        self.redeem_liquidity(token_identifier, amount, mm_sc_address);
     }
 
     #[endpoint(claimFarmingRewards)]
@@ -154,7 +157,7 @@ pub trait AdminConfigModule :
     #[storage_mapper("allowedTokens")]
     fn allowed_tokens(&self) -> WhitelistMapper<EgldOrEsdtTokenIdentifier>;
 
-    #[view(getProtocoleFunds)]
-    #[storage_mapper("protocole_funds")]
+    #[view(getProtocolFunds)]
+    #[storage_mapper("protocol_funds")]
     fn protocol_funds(&self, identifier: &EgldOrEsdtTokenIdentifier) -> SingleValueMapper<BigUint>;
 }
