@@ -142,12 +142,7 @@
         {
             "name": "calculateReliabilityScore",
             "mutability": "mutable",
-            "inputs": [
-                {
-                    "name": "id_account",
-                    "type": "u64"
-                }
-            ],
+            "inputs": [],
             "outputs": []
         },
         {

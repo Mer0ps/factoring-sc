@@ -198,26 +198,33 @@ pub trait Factoring :
     }
 
     #[endpoint(calculateReliabilityScore)]
-    fn calculate_reliability_score(&self, id_account: u64) {
+    fn calculate_reliability_score(&self) {
 
         let mut total_reliability_score = 100;
         let current_timestamp = self.blockchain().get_block_timestamp();
+        let nb_accounts = self.company_count().get();
 
-        'client_loop:
-        for id_contract in self.contracts_client_by_account(&id_account).iter() {
-            for invoice in self.invoices_by_contract(&id_contract).iter() {
-                let is_over_due = self.is_invoice_overdue(invoice.due_date, invoice.payed_date, current_timestamp);
-                if is_over_due {
-                    total_reliability_score -= 1;
+        for id_account in 0..=nb_accounts -1 {
+            total_reliability_score = 100;
 
-                    if total_reliability_score == 0 {
-                        break 'client_loop;
+            'client_loop:
+            for id_contract in self.contracts_client_by_account(&id_account).iter() {
+                for invoice in self.invoices_by_contract(&id_contract).iter() {
+                    let is_over_due = self.is_invoice_overdue(invoice.due_date, invoice.payed_date, current_timestamp);
+                    if is_over_due {
+                        total_reliability_score -= 1;
+
+                        if total_reliability_score == 0 {
+                            break 'client_loop;
+                        }
                     }
                 }
             }
+
+            self.companies(&id_account).update(|val| val.reliability_score = total_reliability_score as u8);
+            self.company_new_score_event(id_account, total_reliability_score);
         }
-        self.companies(&id_account).update(|val| val.reliability_score = total_reliability_score as u8);
-        self.company_new_score_event(id_account, total_reliability_score);
+        
     }
 
     fn is_invoice_overdue(&self, due_date: u64, opt_payed_date: Option<u64>, current_timestamp: u64) -> bool {
