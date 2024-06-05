@@ -31,13 +31,17 @@ pub trait AdminConfigModule :
     #[endpoint(removeProcolFunds)]
     fn remove_protocol_funds(&self, token_identifier: EgldOrEsdtTokenIdentifier, amount: BigUint) {
         self.require_caller_is_admin();
+        let caller = self.blockchain().get_caller();
         self.allowed_tokens().require_whitelisted(&token_identifier);
 
         let available_funds = self.protocol_funds(&token_identifier).get();
 
         require!(available_funds >= amount, NOT_ENOUGH_FUNDS);
 
-
+        self.tx()
+            .to(&caller)
+            .egld_or_single_esdt(&token_identifier, 0, &amount)
+            .transfer_if_not_empty();
 
         self.protocol_funds(&token_identifier).update(|val| *val -= amount);
         
